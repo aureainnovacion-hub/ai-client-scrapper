@@ -10,6 +10,8 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
+    Float,
+    Boolean,
     create_engine,
     UniqueConstraint,
 )
@@ -31,6 +33,11 @@ class Lead(Base):
     fuente = Column(String(100), nullable=True)
     keyword = Column(String(100), nullable=True)
     fecha_scraping = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Nuevos campos de subvenciones
+    total_subvenciones = Column(Float, default=0.0, nullable=True)
+    num_concesiones = Column(Integer, default=0, nullable=True)
+    es_prioritario = Column(Boolean, default=False, nullable=True)
 
     __table_args__ = (
         UniqueConstraint("nombre", "fuente", name="uq_nombre_fuente"),
@@ -54,6 +61,9 @@ class Lead(Base):
             "fecha_scraping": (
                 self.fecha_scraping.isoformat() if self.fecha_scraping else None
             ),
+            "total_subvenciones": self.total_subvenciones,
+            "num_concesiones": self.num_concesiones,
+            "es_prioritario": self.es_prioritario,
         }
 
 
