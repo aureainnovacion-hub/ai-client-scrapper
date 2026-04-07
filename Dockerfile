@@ -45,5 +45,8 @@ COPY . .
 # Crear directorios para datos y logs (para volúmenes de Docker)
 RUN mkdir -p data logs
 
-# Comando por defecto: ejecutar el orquestador
-CMD ["python", "run_pipeline.py"]
+# Exponer el puerto de Streamlit
+EXPOSE 8501
+
+# Comando por defecto: iniciar la interfaz web
+CMD ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

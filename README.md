@@ -1,18 +1,28 @@
 # ai-client-scrapper
 
-Scraper automatizado de empresas del sector de **instalaciones solares en España**, construido con [Playwright](https://playwright.dev/python/) y Python 3.10. Los resultados se persisten en una base de datos SQLite local (`leads.db`) y se exportan a CSV.
+Scraper automatizado de empresas del sector de **instalaciones solares en España**, con enriquecimiento de subvenciones y panel de control web.
 
 ---
 
-## Características
+## Características Principales
 
-- **Pipeline Completo**: Scrapeo, Enriquecimiento de Subvenciones (BDNS) y Envío de Emails en un solo flujo.
-- **Fuentes Sectoriales**: Páginas Amarillas, Empresite, UNEF Asociados, Kompass España.
-- **Enriquecimiento de emails**: Visita la web de cada empresa para extraer el email de contacto.
-- **Módulo de Subvenciones**: Consulta automática a la API de la BDNS (Hacienda) mediante NIF.
-- **Marketing Automatizado**: Envío de emails comerciales personalizados con plantillas Jinja2.
-- **Anti-bot**: Rotación de User-Agent y sesiones de navegador independientes.
-- **Persistencia**: SQLite mediante SQLAlchemy ORM con volúmenes para Docker.
+- **Panel de Control Web**: Interfaz visual con Streamlit para gestionar todo el proceso sin comandos.
+- **Buscador en Tiempo Real**: Lanza búsquedas y ve cómo aparecen los leads y sus subvenciones.
+- **Enriquecimiento BDNS**: Consulta automática de subvenciones en la API de Hacienda (BDNS).
+- **Email Marketing Controlado**: Envío manual o automático de propuestas personalizadas.
+- **Editor de Plantillas**: Modifica el email comercial directamente desde la web.
+- **Dockerizado**: Despliegue sencillo en cualquier servidor Linux.
+
+---
+
+## Interfaz Web (Dashboard)
+
+Al desplegar el proyecto, tendrás acceso a una web en el puerto `8501` con:
+1.  **Dashboard**: Métricas de leads, subvenciones y contactos.
+2.  **Buscador**: Configura la palabra clave y lanza el scraper.
+3.  **Tabla de Leads**: Filtra por importe de subvención, NIF o prioridad.
+4.  **Acciones**: Botón para enviar emails individuales tras revisar el lead.
+5.  **Editor**: Previsualización y edición de la plantilla HTML del email.
 
 ---
 
@@ -21,81 +31,46 @@ Scraper automatizado de empresas del sector de **instalaciones solares en Españ
 ```
 ai-client-scrapper/
 ├── src/
-│   ├── scraper.py        # Extracción de leads
-│   ├── enrich_leads.py   # Consulta de subvenciones (BDNS)
-│   ├── mailer.py         # Envío de emails SMTP
-│   ├── models.py         # Modelos de base de datos
-│   └── utils.py          # Utilidades y logging
-├── services/
-│   └── bdns_service.py   # Integración con API de Hacienda
+│   ├── app.py            # Interfaz Web (Streamlit)
+│   ├── scraper.py        # Motor de extracción
+│   ├── enrich_leads.py   # Validador de subvenciones
+│   ├── mailer.py         # Motor de envío SMTP
+│   └── models.py         # Base de datos (SQLAlchemy)
 ├── templates/
-│   └── email_comercial.html # Plantilla de email Jinja2
-├── data/                 # Base de datos y CSVs (Persistente)
-├── logs/                 # Logs de ejecución (Persistente)
-├── run_pipeline.py       # Orquestador principal
-├── Dockerfile            # Configuración de contenedor
-└── docker-compose.yml    # Orquestación de servicios
+│   └── email_comercial.html # Plantilla personalizable
+├── data/                 # Base de datos (Persistente)
+├── Dockerfile            # Imagen de producción
+└── docker-compose.yml    # Orquestación
 ```
 
 ---
 
 ## Despliegue en Servidor Propio (Ubuntu)
 
-Para poner en marcha el proyecto en tu propio servidor de forma rápida y barata usando Docker:
-
-### 1. Preparación
+### 1. Clonar y Configurar
 ```bash
-# Clonar el repositorio
 git clone https://github.com/jgarciaaurea/ai-client-scrapper.git
 cd ai-client-scrapper
-
-# Crear archivo de configuración
 cp .env.example .env
+nano .env # Configura tu SMTP y ajustes
 ```
 
-### 2. Configuración
-Edita el archivo `.env` con tus credenciales SMTP y ajustes de búsqueda:
+### 2. Levantar con Docker
 ```bash
-nano .env
-```
-
-### 3. Construcción y Despliegue
-```bash
-# Construir la imagen de Docker
 docker-compose build
-
-# Ejecutar el pipeline completo
-docker-compose up
+docker-compose up -d
 ```
 
-### 4. Automatización (Opcional)
-Para ejecutar el scraper automáticamente todos los lunes a las 08:00, añade una tarea a tu `crontab`:
-```bash
-crontab -e
-# Añadir al final del archivo:
-0 8 * * 1 cd /ruta/a/ai-client-scrapper && /usr/local/bin/docker-compose up >> /ruta/a/ai-client-scrapper/logs/cron.log 2>&1
-```
+### 3. Acceder a la Web
+Abre tu navegador en: `http://tu-ip-servidor:8501`
 
 ---
 
-## Variables de Entorno (.env)
+## Notas Técnicas y Seguridad
 
-| Variable | Descripción |
-|---|---|
-| `SEARCH_KEYWORD` | Palabra clave para el scraper |
-| `MAX_PAGES` | Páginas a procesar por fuente |
-| `SMTP_SERVER` | Servidor de correo (ej: smtp.gmail.com) |
-| `SMTP_USER` | Tu usuario/email de envío |
-| `SMTP_PASS` | Contraseña de aplicación |
-| `DRY_RUN` | `true` para simular envíos, `false` para envío real |
-
----
-
-## Notas Técnicas
-
-- **Persistencia**: Los datos se guardan en la carpeta `./data` del host gracias al volumen configurado en `docker-compose.yml`.
-- **Seguridad**: Nunca subas el archivo `.env` ni la base de datos `leads.db` a repositorios públicos.
-- **Playwright**: El Dockerfile incluye todas las dependencias necesarias para ejecutar Chromium en Linux sin interfaz gráfica.
+- **Persistencia**: La base de datos `leads.db` se guarda en la carpeta `./data` de tu servidor. No se borra al reiniciar el contenedor.
+- **Seguridad**: El acceso web no tiene contraseña por defecto. Se recomienda cerrar el puerto 8501 al público o usar un túnel SSH/VPN para acceder.
+- **Anti-bloqueo**: El sistema usa rotación de User-Agents y pausas inteligentes para evitar ser detectado por los directorios.
 
 ---
 

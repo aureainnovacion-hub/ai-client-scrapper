@@ -1,15 +1,18 @@
 version: '3.8'
 
 services:
-  scrapper:
+  scrapper-web:
     build: .
-    container_name: ai-client-scrapper
-    restart: "no" # Se ejecuta bajo demanda o mediante cron en el host
+    container_name: ai-client-scrapper-web
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
     env_file:
       - .env
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-    # Descomenta las siguientes líneas si quieres programar ejecuciones periódicas
-    # desde el host usando: docker-compose up
-    # O usa un servicio de cron externo
+      - ./templates:/app/templates
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
