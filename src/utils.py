@@ -74,16 +74,14 @@ def extract_emails(text: Optional[str]) -> List[str]:
 def extract_nifs(text: Optional[str]) -> List[str]:
     """
     Extrae NIFs/CIFs españoles únicos de un texto usando Regex robusto.
-    Formatos: A12345678, B-12345678, 12345678-Z, etc.
     """
     if not text:
         return []
     
-    # Normalizar texto: quitar guiones y puntos que suelen separar el NIF
+    # Normalizar texto: quitar guiones y puntos
     text_clean = text.upper().replace("-", "").replace(".", "").replace(" ", "")
     
     # Patrón NIF/CIF: Letra + 8 dígitos O 8 dígitos + Letra
-    # [A-H|J|N-P|S-U|V|W] para CIFs de empresas
     pattern = r"([A-HJ-NP-SUVW]\d{7}[0-9A-J]|\d{8}[A-Z]|[XYZ]\d{7}[A-Z])"
     matches = re.findall(pattern, text_clean)
     
@@ -113,11 +111,12 @@ def normalize_url(url: Optional[str]) -> Optional[str]:
 
 def save_lead(session: Session, lead_data: dict, logger: logging.Logger) -> bool:
     """
-    Inserta un lead en la base de datos con filtros estrictos.
-    REGLA: Solo se guarda si tiene NIF o Email.
+    Inserta un lead en la base de datos.
+    Filtro relajado: Se guarda si tiene (Nombre + Web) O (Nombre + Email) O (Nombre + NIF).
     """
     nombre = clean_text(lead_data.get("nombre"))
     fuente = lead_data.get("fuente", "desconocida")
+    web = normalize_url(lead_data.get("web"))
     
     # Extraer y normalizar datos
     nif_raw = lead_data.get("nif") or lead_data.get("nif_raw")
@@ -129,25 +128,23 @@ def save_lead(session: Session, lead_data: dict, logger: logging.Logger) -> bool
     nif = normalize_nif(nifs[0]) if nifs else None
     email = emails[0] if emails else None
 
-    # FILTRO OBLIGATORIO: NIF o Email
-    if not nif and not email:
-        logger.warning(f"Lead descartado (Sin NIF ni Email): '{nombre}'")
-        return False
-
-    if not nombre:
-        logger.warning("Lead descartado: nombre vacío.")
+    # FILTRO FLEXIBLE: Al menos Nombre + (Web o NIF o Email)
+    if not nombre or not (web or nif or email):
+        logger.warning(f"Lead descartado por falta de datos mínimos: '{nombre}'")
         return False
 
     # Deduplicación
     existing = session.query(Lead).filter_by(nombre=nombre, fuente=fuente).first()
     if existing:
-        # Actualizar si el nuevo tiene más info
         updated = False
         if not existing.nif and nif:
             existing.nif = nif
             updated = True
         if not existing.email and email:
             existing.email = email
+            updated = True
+        if not existing.web and web:
+            existing.web = web
             updated = True
         
         if updated:
@@ -157,7 +154,7 @@ def save_lead(session: Session, lead_data: dict, logger: logging.Logger) -> bool
 
     lead = Lead(
         nombre=nombre,
-        web=normalize_url(lead_data.get("web")),
+        web=web,
         nif=nif,
         email=email,
         fuente=fuente,
