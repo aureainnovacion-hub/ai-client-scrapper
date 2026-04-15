@@ -41,3 +41,4 @@ playwright/.auth/
 
 # Jupyter
 .ipynb_checkpoints/
+.env.test
