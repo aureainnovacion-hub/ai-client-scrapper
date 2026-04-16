@@ -1,0 +1,45 @@
+name: Despliegue a Staging
+
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+  deploy-staging:
+    name: Desplegar en Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.mi-proyecto.com
+
+    steps:
+    - name: Checkout del repositorio
+      uses: actions/checkout@v4
+
+    - name: Autenticación en el servicio de despliegue
+      env:
+        STAGING_DEPLOY_KEY: ${{ secrets.STAGING_DEPLOY_KEY }}
+        STAGING_HOST: ${{ vars.STAGING_HOST }}
+      run: |
+        echo "Autenticando en el entorno de staging..."
+        if [ -z "$STAGING_DEPLOY_KEY" ]; then
+          echo "ERROR: STAGING_DEPLOY_KEY no está configurado en los secretos del entorno 'staging'."
+          exit 1
+        fi
+
+    - name: Construir artefacto
+      run: |
+        echo "Construyendo artefacto para staging..."
+        # Añada aquí los comandos de construcción
+
+    - name: Desplegar a Staging
+      env:
+        STAGING_DEPLOY_KEY: ${{ secrets.STAGING_DEPLOY_KEY }}
+      run: |
+        echo "Desplegando a staging..."
+        # Añada aquí los comandos de despliegue
+
+    - name: Verificar despliegue
+      run: |
+        echo "Verificando que el despliegue fue exitoso..."
+        # Añada aquí las comprobaciones de salud (health checks)

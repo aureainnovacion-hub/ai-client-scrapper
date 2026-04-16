@@ -1,0 +1,27 @@
+name: CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up environment
+      run: echo "Configurando el entorno de CD"
+      
+    - name: Deploy to Production
+      env:
+        DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+      run: |
+        echo "Desplegando a producción..."
+        if [ -z "$DEPLOY_TOKEN" ]; then
+          echo "Advertencia: DEPLOY_TOKEN no está configurado."
+        else
+          echo "Token configurado, procediendo con el despliegue."
+        fi

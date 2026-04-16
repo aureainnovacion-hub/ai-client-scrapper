@@ -1,0 +1,60 @@
+name: Notificaciones a Google Chat
+
+on:
+  workflow_run:
+    workflows: ["CD", "Despliegue a Producción", "Despliegue a Staging"]
+    types:
+      - completed
+
+jobs:
+  notify-on-failure:
+    name: Notificar Fallo
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+
+    steps:
+    - name: Notificar fallo a Google Chat
+      if: ${{ vars.GCHAT_NOTIFICATIONS_ENABLED == 'true' }}
+      run: |
+        curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"cards\": [{
+            \"header\": {
+              \"title\": \"🔴 Fallo en el pipeline\",
+              \"subtitle\": \"${{ github.repository }}\"
+            },
+            \"sections\": [{
+              \"widgets\": [
+                { \"textParagraph\": { \"text\": \"<b>Workflow:</b> ${{ github.event.workflow_run.name }}<br><b>Rama:</b> ${{ github.event.workflow_run.head_branch }}\" } },
+                { \"buttons\": [{ \"textButton\": { \"text\": \"Ver detalles\", \"onClick\": { \"openLink\": { \"url\": \"${{ github.event.workflow_run.html_url }}\" } } } }] }
+              ]
+            }]
+          }]
+        }"
+
+  notify-on-success:
+    name: Notificar Éxito
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+    - name: Notificar éxito a Google Chat
+      if: ${{ vars.GCHAT_NOTIFICATIONS_ENABLED == 'true' }}
+      run: |
+        curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"cards\": [{
+            \"header\": {
+              \"title\": \"✅ Despliegue exitoso\",
+              \"subtitle\": \"${{ github.repository }}\"
+            },
+            \"sections\": [{
+              \"widgets\": [
+                { \"textParagraph\": { \"text\": \"<b>Workflow:</b> ${{ github.event.workflow_run.name }}<br><b>Rama:</b> ${{ github.event.workflow_run.head_branch }}\" } },
+                { \"buttons\": [{ \"textButton\": { \"text\": \"Ver detalles\", \"onClick\": { \"openLink\": { \"url\": \"${{ github.event.workflow_run.html_url }}\" } } } }] }
+              ]
+            }]
+          }]
+        }"

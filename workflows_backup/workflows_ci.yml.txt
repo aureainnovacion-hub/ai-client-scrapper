@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up environment
+      run: echo "Configurando el entorno de CI"
+      
+    - name: Run Linter
+      run: echo "Ejecutando linter..."
+      
+    - name: Run Tests
+      run: echo "Ejecutando pruebas..."
+      
+    - name: Build
+      run: echo "Construyendo el proyecto..."

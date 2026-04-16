@@ -19,7 +19,7 @@ import requests
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from src.models import Lead
+from apps.scraper.src.models.models import Lead
 
 
 # ─────────────────────────────────────────────

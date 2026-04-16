@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 
@@ -52,12 +52,12 @@ def main():
     print("  PIPELINE AI CLIENT SCRAPPER — Aurea Innovación")
     print("=" * 60)
 
-    # Leer MAX_PAGES del entorno (por defecto 3 para el pipeline automático)
+    controllers = Path(__file__).parent / "src" / "controllers"
     max_pages = os.getenv("MAX_PAGES", "3")
 
     # ── 1. Scraper ────────────────────────────────────────────────────────
     scraper_ok = run_script(
-        PROJECT_ROOT / "src" / "scraper.py",
+        controllers / "scraper.py",
         env_vars={"MAX_PAGES": max_pages},
     )
     if not scraper_ok:
@@ -65,14 +65,15 @@ def main():
         sys.exit(1)
 
     # ── 2. Enriquecimiento BDNS ───────────────────────────────────────────
-    bdns_ok = run_script(PROJECT_ROOT / "src" / "enrich_leads.py")
+    bdns_ok = run_script(controllers / "enrich_leads.py")
     if not bdns_ok:
         print("\n[PIPELINE] Detenido por error en el Enriquecimiento BDNS.")
         sys.exit(1)
 
     # ── 3. Mailer ─────────────────────────────────────────────────────────
     # El mailer es opcional: si falla, el pipeline continúa con advertencia
-    mailer_ok = run_script(PROJECT_ROOT / "src" / "mailer.py")
+    mailer_path = Path(__file__).parent / "src" / "utils" / "mailer.py"
+    mailer_ok = run_script(mailer_path)
     if not mailer_ok:
         print("\n[PIPELINE] Advertencia: el Mailer finalizó con errores.")
         print("[PIPELINE] Revisa la configuración SMTP en el archivo .env")

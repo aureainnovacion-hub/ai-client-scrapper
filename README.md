@@ -1,79 +1,121 @@
-# ai-client-scrapper
+# AI Client Scrapper — Aurea Innovación
 
-Scraper automatizado de empresas del sector de **instalaciones solares en España**, con enriquecimiento de subvenciones y panel de control web.
+[![CI](https://github.com/aureainnovacion-hub/ai-client-scrapper/actions/workflows/ci.yml/badge.svg)](https://github.com/aureainnovacion-hub/ai-client-scrapper/actions)
+[![CD](https://github.com/aureainnovacion-hub/ai-client-scrapper/actions/workflows/cd.yml/badge.svg)](https://github.com/aureainnovacion-hub/ai-client-scrapper/actions)
 
----
+Bienvenido al repositorio oficial del **AI Client Scrapper** de Aurea Innovación. Este proyecto está estructurado según la plantilla corporativa para garantizar escalabilidad, seguridad y buenas prácticas desde el primer día.
 
-## Características Principales
+## Índice
 
-- **Panel de Control Web**: Interfaz visual con Streamlit para gestionar todo el proceso sin comandos.
-- **Buscador en Tiempo Real**: Lanza búsquedas y ve cómo aparecen los leads y sus subvenciones.
-- **Enriquecimiento BDNS**: Consulta automática de subvenciones en la API de Hacienda (BDNS).
-- **Email Marketing Controlado**: Envío manual o automático de propuestas personalizadas.
-- **Editor de Plantillas**: Modifica el email comercial directamente desde la web.
-- **Dockerizado**: Despliegue sencillo en cualquier servidor Linux.
-
----
-
-## Interfaz Web (Dashboard)
-
-Al desplegar el proyecto, tendrás acceso a una web en el puerto `8501` con:
-1.  **Dashboard**: Métricas de leads, subvenciones y contactos.
-2.  **Buscador**: Configura la palabra clave y lanza el scraper.
-3.  **Tabla de Leads**: Filtra por importe de subvención, NIF o prioridad.
-4.  **Acciones**: Botón para enviar emails individuales tras revisar el lead.
-5.  **Editor**: Previsualización y edición de la plantilla HTML del email.
+- [Inicio Rápido](#inicio-rápido)
+- [Estructura del Repositorio](#estructura-del-repositorio)
+- [Entornos](#entornos)
+- [Seguridad](#seguridad)
+- [CI/CD y Automatización](#cicd-y-automatización)
+- [Pruebas](#pruebas)
+- [Documentación](#documentación)
+- [Contribución](#contribución)
 
 ---
 
-## Estructura del Proyecto
+## Inicio Rápido
 
-```
-ai-client-scrapper/
-├── src/
-│   ├── app.py            # Interfaz Web (Streamlit)
-│   ├── scraper.py        # Motor de extracción
-│   ├── enrich_leads.py   # Validador de subvenciones
-│   ├── mailer.py         # Motor de envío SMTP
-│   └── models.py         # Base de datos (SQLAlchemy)
-├── templates/
-│   └── email_comercial.html # Plantilla personalizable
-├── data/                 # Base de datos (Persistente)
-├── Dockerfile            # Imagen de producción
-└── docker-compose.yml    # Orquestación
-```
+Para levantar todo el entorno de desarrollo local (Scraper, Frontend Streamlit y Base de Datos) usando Docker:
 
----
-
-## Despliegue en Servidor Propio (Ubuntu)
-
-### 1. Clonar y Configurar
 ```bash
-git clone https://github.com/jgarciaaurea/ai-client-scrapper.git
+git clone https://github.com/aureainnovacion-hub/ai-client-scrapper.git
 cd ai-client-scrapper
-cp .env.example .env
-nano .env # Configura tu SMTP y ajustes
+make install
+make dev
 ```
 
-### 2. Levantar con Docker
+A continuación, complete los valores del archivo `.env` generado con su configuración SMTP y credenciales, y acceda a la interfaz web en `http://localhost:8501`.
+
+---
+
+## Estructura del Repositorio
+
+La estructura de directorios está diseñada para ser clara, escalable y consistente entre proyectos de Aurea Innovación.
+
+| Directorio / Archivo | Descripción |
+|---|---|
+| `apps/scraper/` | Lógica principal del scraper, validación de NIF y enriquecimiento BDNS (Python) |
+| `apps/frontend/` | Interfaz de usuario (Streamlit) |
+| `apps/database/` | Esquemas, migraciones y seeds de la base de datos |
+| `docs/` | Documentación técnica (ADRs, API, Seguridad, Observabilidad) |
+| `config/envs/` | Archivos de configuración por entorno |
+| `deploy/` | Scripts y manifiestos de despliegue |
+| `infrastructure/` | Código de infraestructura como código (IaC) |
+| `scripts/` | Scripts de utilidad para desarrollo y mantenimiento |
+| `tests/` | Pruebas automatizadas (unit, integration, e2e) |
+| `.github/workflows/` | Pipelines de CI/CD con GitHub Actions |
+| `docker-compose.yml` | Orquestación de contenedores para desarrollo local |
+| `Makefile` | Automatización centralizada de tareas del proyecto |
+
+---
+
+## Entornos
+
+El proyecto soporta tres entornos diferenciados. Consulte `docs/ENVIRONMENTS.md` para la guía completa de configuración.
+
+| Entorno | Rama | Despliegue |
+|---|---|---|
+| Desarrollo | `feature/*`, `fix/*` | Manual / Local |
+| Staging | `develop` | Automático en cada push |
+| Producción | `main` | Automático con aprobación manual |
+
+---
+
+## Seguridad
+
+La seguridad está integrada en cada fase del ciclo de desarrollo. Consulte `docs/SECURITY_GUIDE.md` para las directrices completas.
+
+Para reportar una vulnerabilidad de seguridad, consulte `SECURITY.md`.
+
+---
+
+## CI/CD y Automatización
+
+### GitHub Actions
+
+Los pipelines están organizados por responsabilidad: build, tests, calidad, seguridad, despliegue a staging/producción, releases semánticos y notificaciones.
+
+### Convenciones de Commits
+
+Este repositorio sigue la especificación de [Conventional Commits](https://www.conventionalcommits.org/). Todos los mensajes de commit deben seguir el formato `tipo(ámbito): descripción` y son validados automáticamente.
+
+---
+
+## Pruebas
+
+La estrategia de pruebas sigue la pirámide de testing. Consulte `docs/TESTING.md` para más detalles.
+
 ```bash
-docker-compose build
-docker-compose up -d
+make test       # Ejecuta todas las pruebas
+make test-unit  # Ejecuta pruebas unitarias
+make test-e2e   # Ejecuta pruebas end-to-end
 ```
 
-### 3. Acceder a la Web
-Abre tu navegador en: `http://tu-ip-servidor:8501`
+---
+
+## Documentación
+
+La documentación técnica del proyecto se encuentra en el directorio `docs/`:
+
+- `docs/ARCHITECTURE.md` — Arquitectura del sistema y decisiones de diseño.
+- `docs/adr/` — Registros de Decisiones de Arquitectura (Architecture Decision Records).
+- `docs/OBSERVABILITY.md` — Guía de logging, métricas y trazas.
+- `docs/RUNBOOK.md` — Procedimientos operacionales y respuesta a incidentes.
+- `docs/ENVIRONMENTS.md` — Guía de configuración de entornos y secretos.
+- `docs/SECURITY_GUIDE.md` — Directrices de seguridad.
+- `docs/TESTING.md` — Estrategia y guía de pruebas.
 
 ---
 
-## Notas Técnicas y Seguridad
+## Contribución
 
-- **Persistencia**: La base de datos `leads.db` se guarda en la carpeta `./data` de tu servidor. No se borra al reiniciar el contenedor.
-- **Seguridad**: El acceso web no tiene contraseña por defecto. Se recomienda cerrar el puerto 8501 al público o usar un túnel SSH/VPN para acceder.
-- **Anti-bloqueo**: El sistema usa rotación de User-Agents y pausas inteligentes para evitar ser detectado por los directorios.
-
----
+Consulte `CONTRIBUTING.md` para las directrices de contribución y `CODE_OF_CONDUCT.md` para las normas de comportamiento en la comunidad.
 
 ## Licencia
 
-MIT License — uso libre con atribución.
+Este proyecto está bajo la Licencia MIT - vea el archivo [LICENSE](LICENSE) para más detalles.

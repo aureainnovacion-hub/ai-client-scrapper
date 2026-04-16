@@ -1,0 +1,35 @@
+repos:
+  # Hooks básicos de pre-commit
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        name: Eliminar espacios en blanco al final
+      - id: end-of-file-fixer
+        name: Asegurar nueva línea al final del archivo
+      - id: check-yaml
+        name: Validar archivos YAML
+      - id: check-json
+        name: Validar archivos JSON
+      - id: check-merge-conflict
+        name: Detectar marcadores de conflictos de merge
+      - id: detect-private-key
+        name: Detectar claves privadas
+      - id: no-commit-to-branch
+        name: Prevenir commits directos a ramas protegidas
+        args: ['--branch', 'main', '--branch', 'develop']
+
+  # Escaneo de secretos con Gitleaks
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        name: Escanear secretos con Gitleaks
+
+  # Formateo de archivos Markdown
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        name: Validar formato Markdown
+        args: ['--disable', 'MD013', 'MD033']

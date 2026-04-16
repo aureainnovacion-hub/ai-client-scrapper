@@ -1,0 +1,69 @@
+name: Despliegue a Producción
+
+on:
+  push:
+    branches: [ "main" ]
+  # También se puede activar manualmente para mayor control
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba "CONFIRMAR" para proceder con el despliegue a producción'
+        required: true
+
+jobs:
+  validate-input:
+    name: Validar Confirmación Manual
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Verificar confirmación
+      run: |
+        if [ "${{ github.event.inputs.confirm }}" != "CONFIRMAR" ]; then
+          echo "Despliegue cancelado. Debe escribir 'CONFIRMAR' para proceder."
+          exit 1
+        fi
+
+  deploy-production:
+    name: Desplegar en Producción
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://mi-proyecto.com
+    # Requiere aprobación manual configurada en el entorno 'production' de GitHub
+
+    steps:
+    - name: Checkout del repositorio
+      uses: actions/checkout@v4
+
+    - name: Autenticación en el servicio de despliegue
+      env:
+        PROD_DEPLOY_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
+        PROD_HOST: ${{ vars.PROD_HOST }}
+      run: |
+        echo "Autenticando en el entorno de producción..."
+        if [ -z "$PROD_DEPLOY_KEY" ]; then
+          echo "ERROR: PROD_DEPLOY_KEY no está configurado en los secretos del entorno 'production'."
+          exit 1
+        fi
+
+    - name: Construir artefacto de producción
+      run: |
+        echo "Construyendo artefacto optimizado para producción..."
+
+    - name: Desplegar a Producción
+      env:
+        PROD_DEPLOY_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
+      run: |
+        echo "Desplegando a producción..."
+
+    - name: Verificar despliegue
+      run: |
+        echo "Verificando que el despliegue fue exitoso..."
+
+    - name: Notificar despliegue exitoso
+      if: success()
+      run: echo "Despliegue a producción completado exitosamente."
+
+    - name: Notificar fallo en despliegue
+      if: failure()
+      run: echo "ERROR: El despliegue a producción ha fallado. Revisar logs."

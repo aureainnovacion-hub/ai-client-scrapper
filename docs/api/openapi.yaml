@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: API de PLANTILLA
+  description: |
+    Documentación oficial de la API RESTful de la aplicación PLANTILLA.
+    Esta especificación sigue el enfoque **Design-First** y define todos los contratos de integración.
+  version: 1.0.0
+  contact:
+    name: Equipo de Desarrollo
+    email: dev@ejemplo.com
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Entorno de Desarrollo Local
+  - url: https://staging.ejemplo.com/api/v1
+    description: Entorno de Pruebas (Staging)
+  - url: https://api.ejemplo.com/v1
+    description: Entorno de Producción
+paths:
+  /health:
+    get:
+      summary: Verificación de salud del servicio
+      description: Endpoint para comprobar que el servicio backend está levantado y funcionando correctamente.
+      operationId: getHealthStatus
+      tags:
+        - Sistema
+      responses:
+        '200':
+          description: El servicio está operativo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          example: "ok"
+          description: Estado actual del servicio
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-04-13T10:00:00Z"
+          description: Fecha y hora de la comprobación
+        version:
+          type: string
+          example: "1.0.0"
+          description: Versión desplegada del backend
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []

@@ -23,10 +23,10 @@ from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright, Page, TimeoutError as PWTimeout
 
 # Ajustar path al raíz del proyecto
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from src.models import init_db
-from src.utils import (
+from apps.scraper.src.models.models import init_db
+from apps.scraper.src.utils.utils import (
     setup_logger, save_lead, export_to_csv, clean_text,
     extract_emails, extract_nifs, normalize_url, validate_spanish_id,
     lookup_nif_by_name,

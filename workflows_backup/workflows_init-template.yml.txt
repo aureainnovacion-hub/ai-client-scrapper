@@ -1,0 +1,62 @@
+name: Inicializar Repositorio desde Plantilla
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  setup-template:
+    name: Configurar Plantilla
+    # Solo se ejecuta si NO es el repositorio plantilla original
+    if: ${{ !github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Activar Workflows de CI/CD
+        run: |
+          echo "Activando workflows de CI/CD..."
+          mkdir -p .github/workflows
+          
+          # Mover los workflows de la carpeta de backup a la carpeta real
+          if [ -d "workflows_backup" ]; then
+            for f in workflows_backup/*.txt; do
+              if [ -f "$f" ]; then
+                nuevo_nombre=$(basename "${f%.txt}" | sed 's/^workflows_//')
+                cp "$f" ".github/workflows/$nuevo_nombre"
+              fi
+            done
+            # Eliminar la carpeta de backup ya que no se necesita
+            rm -rf workflows_backup
+          fi
+          
+          # Autodestrucción de este workflow de inicialización
+          rm -f .github/workflows/init-template.yml
+          
+          echo "Configuración inicial completada."
+          
+      - name: Commit y Push de los cambios
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add .github/workflows/
+          git add workflows_backup/ || true
+          
+          # Solo hacer commit si hay cambios
+          if ! git diff --cached --quiet; then
+            git commit -m "ci: activar workflows de CI/CD desde la plantilla [skip ci]"
+            git push
+          else
+            echo "No hay cambios para hacer commit."
+          fi

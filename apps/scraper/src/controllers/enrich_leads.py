@@ -17,9 +17,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.models import init_db, Lead
-from src.utils import setup_logger
-from services.bdns_service import check_subsidies
+from apps.scraper.src.models.models import init_db, Lead
+from apps.scraper.src.utils.utils import setup_logger
+from apps.scraper.src.services.bdns_service import check_subsidies
 
 load_dotenv(PROJECT_ROOT / ".env")
 
